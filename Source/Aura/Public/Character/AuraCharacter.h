@@ -6,6 +6,7 @@
 #include "Character/AuraCharacterBase.h"
 #include "AuraCharacter.generated.h"
 
+class AAuraPlayerState;
 class UCameraComponent;
 class USpringArmComponent;
 /**
@@ -19,11 +20,16 @@ class AURA_API AAuraCharacter : public AAuraCharacterBase
 	GENERATED_BODY()
 public:
     AAuraCharacter();
+    //~ Begin APawn Interface
+    virtual void PossessedBy(AController* NewController) override;
+    virtual void OnRep_PlayerState() override;
+    //~ End APawn Interface
 private:
+    void InitAbilityActorInfo();
+    
     UPROPERTY(VisibleAnywhere, Category = "Camera")
     TObjectPtr<USpringArmComponent> CameraBoom;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UCameraComponent> FollowCamera;
-
 };

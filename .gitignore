@@ -3,6 +3,9 @@ DerivedDataCache
 Intermediate
 Saved
 Build
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+/Plugins/UnLua/Source/UnLuaDefaultParamCollectorUbtPlugin/obj
 
 .vscode
 .vs

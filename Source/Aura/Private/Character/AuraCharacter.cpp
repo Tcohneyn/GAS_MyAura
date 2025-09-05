@@ -2,9 +2,13 @@
 
 
 #include "Character/AuraCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Player/AuraPlayerState.h"
+
 AAuraCharacter::AAuraCharacter()
 {
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
@@ -29,11 +33,11 @@ AAuraCharacter::AAuraCharacter()
     // 禁用相机碰撞检测（相机不会因为障碍物自动缩近）
     // 适用于俯视游戏，否则相机会被卡近
     CameraBoom->bDoCollisionTest = false;
-    
+
     FollowCamera = CreateDefaultSubobject<UCameraComponent>("FollowCamera");
     FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
     FollowCamera->bUsePawnControlRotation = false;
-    
+
     // -------------------- 角色移动设置 --------------------
 
     // 让角色朝向移动方向旋转（而不是朝向控制器方向）
@@ -49,7 +53,6 @@ AAuraCharacter::AAuraCharacter()
     // 开始游戏时将角色自动贴到平面上
     GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
-
     // -------------------- 控制器旋转设置 --------------------
 
     // 不使用控制器的 Pitch（防止上下看影响角色旋转）
@@ -61,5 +64,27 @@ AAuraCharacter::AAuraCharacter()
     // 不使用控制器的 Yaw（防止左右看影响角色旋转）
     bUseControllerRotationYaw = false;
 
-    
+}
+
+void AAuraCharacter::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+    //给服务端初始化能力ActorInfo
+    InitAbilityActorInfo();
+}
+
+void AAuraCharacter::OnRep_PlayerState()
+{
+    Super::OnRep_PlayerState();
+    //给客户端初始化能力ActorInfo
+    InitAbilityActorInfo();
+}
+
+void AAuraCharacter::InitAbilityActorInfo()
+{
+    AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+    check(AuraPlayerState);
+    AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState, this);
+    AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();
+    AttributeSet = AuraPlayerState->GetAttributeSet();
 }
