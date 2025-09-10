@@ -84,8 +84,11 @@ void AAuraPlayerController::BeginPlay()
 
     // 获取增强输入本地玩家子系统
     auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer);
-    check(Subsystem);
-    Subsystem->AddMappingContext(AuraContext,0);
+    //check(Subsystem);
+    if (Subsystem)
+    {
+        Subsystem->AddMappingContext(AuraContext, 0);
+    }
 
     // 显示鼠标光标（true 表示显示，false 表示隐藏）
     bShowMouseCursor = true;
@@ -116,14 +119,14 @@ void AAuraPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
     UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-    EnhancedInputComponent->BindAction(MoveAction,ETriggerEvent::Triggered,this,&ThisClass::Move);
+    EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 {
     const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
     const FRotator Rotator = GetControlRotation();
-    const FRotator YawRotation(0.0,Rotator.Yaw,0.0);
+    const FRotator YawRotation(0.0, Rotator.Yaw, 0.0);
 
     const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
     const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
@@ -136,4 +139,3 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
         ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
     }
 }
-
