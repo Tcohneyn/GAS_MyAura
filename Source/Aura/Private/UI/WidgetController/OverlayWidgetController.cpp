@@ -32,7 +32,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
         AuraAttributeSet->GetManaAttribute()).AddUObject(this, &UOverlayWidgetController::ManaChanged);
     // 绑定最大魔力值变化回调
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-        AuraAttributeSet->GetManaAttribute()).AddUObject(this, &UOverlayWidgetController::MaxManaChanged);
+        AuraAttributeSet->GetMaxManaAttribute()).AddUObject(this, &UOverlayWidgetController::MaxManaChanged);
 }
 
 void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const

@@ -15,12 +15,12 @@ function M:WidgetControllerSet()
     OverlayController.OnManaChanged:Add(self, M.OnManaChanged)
     OverlayController.OnMaxManaChanged:Add(self, M.OnMaxManaChanged)
 end
---绑定血量变化事件
+--绑定魔力变化事件
 function M:OnManaChanged(NewMana)
     self.CurrentMana = NewMana
     self:SetProgressBarPercent(UE.UKismetMathLibrary.SafeDivide(self.CurrentMana, self.MaxMana))
 end
---绑定最大血量变化事件
+--绑定最大魔力变化事件
 function M:OnMaxManaChanged(NewMaxMana)
     self.MaxMana = NewMaxMana
     self:SetProgressBarPercent(UE.UKismetMathLibrary.SafeDivide(self.CurrentMana, self.MaxMana))
