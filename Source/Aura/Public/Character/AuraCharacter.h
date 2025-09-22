@@ -25,7 +25,7 @@ public:
     virtual void OnRep_PlayerState() override;
     //~ End APawn Interface
 private:
-    void InitAbilityActorInfo();
+    virtual void InitAbilityActorInfo() override;
     
     UPROPERTY(VisibleAnywhere, Category = "Camera")
     TObjectPtr<USpringArmComponent> CameraBoom;

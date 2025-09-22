@@ -7,7 +7,7 @@
 --
 
 ---@type WBP_ManaGlobe_C
-local M = UnLua.Class()
+local M = UnLua.Class("Blueprints.UI.ProgressBar.WBP_GlobeProgressBar")
 
 function M:WidgetControllerSet()
     --设置组件控制器
@@ -26,4 +26,7 @@ function M:OnMaxManaChanged(NewMaxMana)
     self:SetProgressBarPercent(UE.UKismetMathLibrary.SafeDivide(self.CurrentMana, self.MaxMana))
 end
 
+function M:Tick(MyGeometry, InDeltaTime)
+   self.Super.Tick(self, MyGeometry, InDeltaTime)
+end
 return M

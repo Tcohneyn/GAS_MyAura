@@ -26,4 +26,6 @@ protected:
     //~ Begin APawn Interface
     virtual void BeginPlay() override;
     //~ End APawn Interface
+
+    virtual void InitAbilityActorInfo() override;
 };

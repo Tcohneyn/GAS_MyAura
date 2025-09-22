@@ -19,6 +19,7 @@ end
 function M:OnHealthChanged(NewHealth)
     self.CurrentHealth = NewHealth
     self:SetProgressBarPercent(UE.UKismetMathLibrary.SafeDivide(self.CurrentHealth, self.MaxHealth))
+    --print("HealthPercent",UE.UKismetMathLibrary.SafeDivide(self.CurrentHealth, self.MaxHealth))
 end
 --绑定最大血量变化事件
 function M:OnMaxHealthChanged(NewMaxHealth)
@@ -26,4 +27,7 @@ function M:OnMaxHealthChanged(NewMaxHealth)
     self:SetProgressBarPercent(UE.UKismetMathLibrary.SafeDivide(self.CurrentHealth, self.MaxHealth))
 end
 
+function M:Tick(MyGeometry, InDeltaTime)
+   self.Super.Tick(self, MyGeometry, InDeltaTime)
+end
 return M
