@@ -26,4 +26,23 @@ function M:OnMessageWidgetRow(Row)
    HUD:AddToViewport()
 end
 
+
+function M:Construct()
+   self.AttributeMenuButton.Button.OnClicked:Add(self, M.OnAttributeMenuButtonClicked)
+end
+
+function M:OnAttributeMenuButtonClicked()
+   self.AttributeMenuButton.Button:SetIsEnabled(false)
+   local PlayerController = UE.UGameplayStatics.GetPlayerController(self, 0)
+   local AttributeMenu = UE.UWidgetBlueprintLibrary.Create(self, self.AttributeMenu, PlayerController)
+   AttributeMenu:AddToViewport()
+   AttributeMenu:SetPositionInViewport(UE.FVector2D(25.0,25.0),true)
+   AttributeMenu.AttributeMenuClosed:Add(self, M.OnAttributeMenuClosed)  --蓝图中的委托本质是动态多播委托
+end
+
+function M:OnAttributeMenuClosed()
+   self.AttributeMenuButton.Button:SetIsEnabled(true)
+end
 return M
+
+

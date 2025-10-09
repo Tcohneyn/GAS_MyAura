@@ -1,0 +1,27 @@
+// Tcohneyn All Rights Reserved
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "AuraAbilitySystemLibrary.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class AURA_API UAuraAbilitySystemLibrary : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+    UFUNCTION(BlueprintPure, Category="AuraAbilitySystemLibrary|WidgetController",meta=(WorldContext="WorldContextObject"))
+    static UOverlayWidgetController* GetOverlayWidgetController(const UObject* WorldContextObject);
+
+    UFUNCTION(BlueprintPure, Category="AuraAbilitySystemLibrary|WidgetController",meta=(WorldContext="WorldContextObject"))
+    static UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const UObject* WorldContextObject);
+
+    UFUNCTION(BlueprintCallable, Category="GameplayTags")
+    static FGameplayTag GetTag(FName TagName){return FGameplayTag::RequestGameplayTag(TagName);}
+};

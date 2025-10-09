@@ -2,10 +2,12 @@
 
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AuraGameplayTagsController.h"
 //当角色设置完 AbilityActorInfo 后调用，用于触发委托绑定。
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
     OnGameplayEffectAppliedDelegateToSelf.AddUObject(this,&UAuraAbilitySystemComponent::EffectApplied);
+    
 }
 //OnGameplayEffectAppliedDelegateToSelf回调函数
 void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec,

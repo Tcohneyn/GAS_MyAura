@@ -6,12 +6,12 @@
 
 #include "NativeGameplayTags.h"
 
-namespace Attributes
+namespace VitalAttributes
 {
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Vital_Health);
-    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Vital_MaxHealth);
+    //AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Vital_MaxHealth);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Vital_Mana);
-    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Vital_MaxMana);
+    //AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Vital_MaxMana);
 }
 
 namespace Message

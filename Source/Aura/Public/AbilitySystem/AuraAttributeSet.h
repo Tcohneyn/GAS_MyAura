@@ -46,6 +46,12 @@ struct FEffectProperties
     UPROPERTY()
     ACharacter* TargetCharacter = nullptr;
 };
+//这行typedef注释说明：之前的方案是特化于FGameplayAttribute()签名的，而TStaticFunPtr是泛用于任何被选择的签名的
+//typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr FAttributeFuncPtr;
+
+// 定义了一个模板别名TStaticFuncPtr，它可以适配任何函数签名
+template<class T>
+using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
 
 UCLASS()
 class AURA_API UAuraAttributeSet : public UAttributeSet
@@ -59,6 +65,8 @@ public:
     virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
     
     virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+    TMap<FGameplayTag, TStaticFuncPtr<FGameplayAttribute()>> TagsToAttributes;
     
     /*
      * 主要属性
