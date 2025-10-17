@@ -25,6 +25,12 @@ void AAuraCharacterBase::BeginPlay()
 
 }
 
+FVector AAuraCharacterBase::GetCombatSocketLocation()
+{
+    check(Weapon);
+    return Weapon->GetSocketLocation(WeaponTipSocketName);
+}
+
 void AAuraCharacterBase::InitAbilityActorInfo()
 {
 }
@@ -51,4 +57,12 @@ void AAuraCharacterBase::InitializeDefaultAttributes() const
     ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f);
     //核心属性
     ApplyEffectToSelf(DefaultVitalAttributes, 1.f);
+}
+
+void AAuraCharacterBase::AddCharacterAbilities()
+{
+    UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+    if (!HasAuthority()) return; //检查是否拥有网络权限
+
+    AuraASC->AddCharacterAbilities(StartupAbilities);
 }

@@ -2,78 +2,184 @@
 
 
 #include "Player/AuraPlayerController.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AuraGameplayTagsController.h"
 #include "EnhancedInputSubsystems.h"
-#include "EnhancedInputComponent.h"
+#include "NavigationPath.h"
+#include "NavigationSystem.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "Components/SplineComponent.h"
+#include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
     bReplicates = true;
+    Spline = CreateDefaultSubobject<USplineComponent>("SplineComponent");
 }
 
 void AAuraPlayerController::PlayerTick(float DeltaTime)
 {
     Super::PlayerTick(DeltaTime);
     CursorTrace();
+    AutoRun();
 }
 
+// 自动寻路功能的核心函数
+void AAuraPlayerController::AutoRun()
+{
+    // 检查是否处于自动寻路状态，如果不是则直接返回
+    if (!bAutoRunning) return;
+    
+    // 获取当前控制的角色（Pawn）
+    if (APawn* ControlledPawn = GetPawn())
+    {
+        // 在样条线上找到离角色当前位置最近的点
+        const FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(
+            ControlledPawn->GetActorLocation(), 
+            ESplineCoordinateSpace::World
+        );
+        
+        // 获取样条线在该点处的切线方向（即移动方向）
+        const FVector Direction = Spline->FindDirectionClosestToWorldLocation(
+            LocationOnSpline, 
+            ESplineCoordinateSpace::World
+        );
+        
+        // 向角色添加移动输入，使其沿样条线方向移动
+        ControlledPawn->AddMovementInput(Direction);
+
+        // 计算当前在样条线上的位置与目标位置之间的距离
+        const float DistanceToDestination = (LocationOnSpline - CachedDestination).Length();
+        
+        // 如果距离小于等于自动寻路的接受半径，则停止自动寻路
+        if (DistanceToDestination <= AutoRunAcceptanceRadius)
+        {
+            bAutoRunning = false;
+        }
+    }
+}
 void AAuraPlayerController::CursorTrace()
 {
-    FHitResult CursorHit;
     GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
     if (!CursorHit.bBlockingHit) return;
 
     LastActor = ThisActor;
     ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
 
-    /**
-     * 从鼠标光标位置进行直线检测（Line Trace），会有以下几种情况：
-     *  A. LastActor 为空 && ThisActor 为空
-     *     - 什么也不做
-     *  B. LastActor 为空 && ThisActor 有效
-     *     - 高亮 ThisActor
-     *  C. LastActor 有效 && ThisActor 为空
-     *     - 取消高亮 LastActor
-     *  D. 两者都有效，但 LastActor != ThisActor
-     *     - 取消高亮 LastActor，并高亮 ThisActor
-     *  E. 两者都有效，且是同一个 Actor
-     *     - 什么也不做
-     */
-
-    if (LastActor == nullptr)
+    if (LastActor != ThisActor)
     {
-        if (ThisActor != nullptr)
-        {
-            // Case B
-            ThisActor->HighlightActor();
-        }
-        else
-        {
-            // Case A - both are null, do nothing
-        }
+        if (LastActor) LastActor->UnHighlightActor();
+        if (ThisActor) ThisActor->HighlightActor();
     }
-    else // LastActor is valid
+}
+
+void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
+{
+    //GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, *InputTag.ToString());
+    if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
     {
-        if (ThisActor == nullptr)
+        bTargeting = ThisActor ? true : false;
+        bAutoRunning = false;
+    }
+}
+
+// 处理技能输入按键释放事件
+void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
+{
+    // 检查释放的输入标签是否为鼠标左键（LMB）
+    if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+    {
+        // 如果不是鼠标左键，直接传递给技能系统组件处理技能释放逻辑
+        if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+        return; // 对于非LMB输入，处理到此结束
+    }
+
+    // 如果是鼠标左键释放，根据当前状态处理
+    if (bTargeting) // 如果处于目标锁定状态
+    {
+        // 将释放事件传递给技能系统，用于释放目标型技能（如攻击锁定目标）
+        if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+    }
+    else // 如果不处于目标锁定状态，处理移动逻辑
+    {
+        // 获取控制的Pawn
+        const APawn* ControlledPawn = GetPawn();
+        
+        // 检查是否为短按（按压时间小于等于短按阈值）且Pawn有效
+        if (FollowTime <= ShortPressThreshold && ControlledPawn)
         {
-            // Case C
-            LastActor->UnHighlightActor();
+            // 使用导航系统查找从当前位置到缓存目的地的路径
+            if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+                this, ControlledPawn->GetActorLocation(), CachedDestination))
+            {
+                // 清空样条线上的所有点
+                Spline->ClearSplinePoints();
+                
+                // 将导航路径上的所有点添加到样条线中
+                for (const FVector& PointLoc : NavPath->PathPoints)
+                {
+                    Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+                    // 绘制调试球体，显示路径点（绿色，持续5秒）
+                    //DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
+                }
+                CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+                
+                // 设置自动寻路状态为true
+                bAutoRunning = true;
+            }
         }
-        else // both actors are valid
+        
+        // 重置按压时间
+        FollowTime = 0.f;
+        // 重置目标锁定状态
+        bTargeting = false;
+    }
+}
+
+void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
+{
+    if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+    {
+        if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+        return;
+    }
+
+    if (bTargeting)
+    {
+        if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+    }
+    else
+    {
+        // 累计按住时间，用于区分点击和长按
+        FollowTime += GetWorld()->GetDeltaSeconds();
+
+        // 检查光标射线检测是否发生了有效阻挡（即是否击中了场景中的物体）
+        if (CursorHit.bBlockingHit) 
+            // 如果发生了阻挡，将缓存的目标点设置为射线击中点的精确位置
+                CachedDestination = CursorHit.ImpactPoint;
+
+        // 获取控制的Pawn并执行移动
+        if (APawn* ControlledPawn = GetPawn())
         {
-            if (LastActor != ThisActor)
-            {
-                // Case D
-                LastActor->UnHighlightActor();
-                ThisActor->HighlightActor();
-            }
-            else
-            {
-                // Case E - do nothing
-            }
+            // 计算从角色位置到目标位置的方向向量（归一化）
+            const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+            // 添加移动输入
+            ControlledPawn->AddMovementInput(WorldDirection);
         }
     }
 }
+
+UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
+{
+    if (AuraAbilitySystemComponent == nullptr)
+    {
+        AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
+    }
+    return AuraAbilitySystemComponent;
+}
+
 
 void AAuraPlayerController::BeginPlay()
 {
@@ -118,8 +224,9 @@ void AAuraPlayerController::BeginPlay()
 void AAuraPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
-    UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-    EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+    UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
+    AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+    AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
