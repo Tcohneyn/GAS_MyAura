@@ -17,4 +17,26 @@ function M:Tick(MyGeometry, InDeltaTime)
    self:SetGhostProgressBarPercent(value)
 end
 
+function M:GlobePercentSet(Percent)
+       coroutine.resume(coroutine.create(
+        function()    
+            UE.UKismetSystemLibrary.Delay(self,self.GhostDelay)
+            self.GhostPercentTarget = Percent
+        end
+    ))
+end
+
+function M:SetBarPercent(Health,MaxHealth)
+   local Target = UE.UKismetMathLibrary.SafeDivide(Health, MaxHealth)
+   self:SetProgressBarPercent(Target)
+   self:GlobePercentSet(Target)
+end
+
+function M:SetProgressBarPercent(Percent)
+   self.ProgressBar_Globe:SetPercent(Percent)
+end
+
+function M:SetGhostProgressBarPercent(Percent)
+   self.ProgressBar_Ghost:SetPercent(Percent)
+end
 return M

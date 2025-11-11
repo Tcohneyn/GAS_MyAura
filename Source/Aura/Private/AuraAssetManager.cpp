@@ -2,6 +2,8 @@
 
 
 #include "AuraAssetManager.h"
+
+#include "AbilitySystemGlobals.h"
 #include "AuraGameplayTagsController.h"
 
 // 返回当前项目中唯一的 UAuraAssetManager 实例
@@ -19,4 +21,6 @@ void UAuraAssetManager::StartInitialLoading()
     Super::StartInitialLoading();
 
     FAuraGameplayTags::InitializeNativeGameplayTags();
+    // This is required to use Target Data!
+    UAbilitySystemGlobals::Get().InitGlobalData();
 }

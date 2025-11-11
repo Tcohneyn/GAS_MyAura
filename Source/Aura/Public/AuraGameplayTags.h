@@ -21,4 +21,8 @@ namespace Message
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Message_ManaCrystal);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Message_ManaPotion);
 }
+namespace Event
+{
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_Firebolt);
+}
 #endif  // !GAMEPLAYTAGS_H

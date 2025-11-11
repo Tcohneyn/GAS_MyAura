@@ -18,15 +18,19 @@ end
 --绑定魔力变化事件
 function M:OnManaChanged(NewMana)
     self.CurrentMana = NewMana
-    self:SetProgressBarPercent(UE.UKismetMathLibrary.SafeDivide(self.CurrentMana, self.MaxMana))
+    self:SetBarPercent( self.CurrentMana,self.MaxMana)
 end
 --绑定最大魔力变化事件
 function M:OnMaxManaChanged(NewMaxMana)
     self.MaxMana = NewMaxMana
-    self:SetProgressBarPercent(UE.UKismetMathLibrary.SafeDivide(self.CurrentMana, self.MaxMana))
+    self:SetBarPercent( self.CurrentMana,self.MaxMana)
 end
 
 function M:Tick(MyGeometry, InDeltaTime)
    self.Super.Tick(self, MyGeometry, InDeltaTime)
+end
+
+function M:SetBarPercent(Health,MaxHealth)
+   self.Super.SetBarPercent(self,Health,MaxHealth)
 end
 return M

@@ -18,3 +18,7 @@ namespace Message
   UE_DEFINE_GAMEPLAY_TAG(Message_ManaCrystal, "Message.ManaCrystal");
   UE_DEFINE_GAMEPLAY_TAG(Message_ManaPotion, "Message.ManaPotion");
 }
+namespace Event
+{
+  UE_DEFINE_GAMEPLAY_TAG(Event_Montage_Firebolt, "Event.Montage.Firebolt");
+}

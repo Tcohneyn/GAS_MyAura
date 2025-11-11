@@ -96,13 +96,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
         return; // 对于非LMB输入，处理到此结束
     }
 
-    // 如果是鼠标左键释放，根据当前状态处理
-    if (bTargeting) // 如果处于目标锁定状态
-    {
-        // 将释放事件传递给技能系统，用于释放目标型技能（如攻击锁定目标）
-        if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
-    }
-    else // 如果不处于目标锁定状态，处理移动逻辑
+
+    // 将释放事件传递给技能系统，用于释放目标型技能（如攻击锁定目标）
+    if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+
+    if (!bTargeting && !bShiftKeyDown)
     {
         // 获取控制的Pawn
         const APawn* ControlledPawn = GetPawn();
@@ -146,7 +144,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
         return;
     }
 
-    if (bTargeting)
+    if (bTargeting || bShiftKeyDown)
     {
         if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
     }
@@ -226,6 +224,8 @@ void AAuraPlayerController::SetupInputComponent()
     Super::SetupInputComponent();
     UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
     AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+    AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &AAuraPlayerController::ShiftPressed);
+    AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
     AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
