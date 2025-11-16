@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Data/CharacterClassInfo.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AuraAbilitySystemLibrary.generated.h"
 
+class UAbilitySystemComponent;
 /**
  * 
  */
@@ -24,4 +26,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="GameplayTags")
     static FGameplayTag GetTag(FName TagName){return FGameplayTag::RequestGameplayTag(TagName);}
+
+    UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
+    static void InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC);
 };
