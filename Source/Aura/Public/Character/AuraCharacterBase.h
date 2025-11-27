@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UTimelineComponent;
 class UGameplayAbility;
 class UAttributeSet;
 class UAuraAbilitySystemComponent;
@@ -23,6 +25,12 @@ public:
 	AAuraCharacterBase();
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     UAttributeSet* GetAttributeSet() const {return AttributeSet;}
+
+    virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+    virtual void Die() override;
+
+    UFUNCTION(NetMulticast, Reliable)
+    virtual void MulticastHandleDeath();
 protected:
 	virtual void BeginPlay() override;
 
@@ -55,8 +63,43 @@ protected:
     virtual void InitializeDefaultAttributes() const;
 
     void AddCharacterAbilities();
+
+    /* 溶解效果 */
+#pragma region DissolveCurve
+    UPROPERTY(EditDefaultsOnly, Category = "Dissolve")
+    UCurveFloat* DissolveCurve;  // 控制溶解程度的曲线（0~1）
+    
+    UPROPERTY(BlueprintReadOnly, Category = "Dissolve")
+    UTimelineComponent* BodyDissolveTimeline;
+    
+    UPROPERTY(BlueprintReadOnly, Category = "Dissolve")
+    UTimelineComponent* WeaponDissolveTimeline;
+    
+    UPROPERTY(BlueprintReadOnly, Category = "Dissolve")
+    FOnTimelineFloat BodyDissolveUpdate;
+    
+    UPROPERTY(BlueprintReadOnly, Category = "Dissolve")
+    FOnTimelineFloat WeaponDissolveUpdate;
+    void Dissolve();
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
+#pragma endregion
+
 private:
 
     UPROPERTY(EditAnywhere, Category = "Abilities")
     TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    TObjectPtr<UAnimMontage> HitReactMontage;
 };

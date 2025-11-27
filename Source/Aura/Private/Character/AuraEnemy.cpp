@@ -3,11 +3,13 @@
 
 #include "Character/AuraEnemy.h"
 
+#include "AuraGameplayTagsController.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "Aura/Aura.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Widget/AuraUserWidget.h"
 
 AAuraEnemy::AAuraEnemy()
@@ -49,15 +51,24 @@ int32 AAuraEnemy::GetPlayerLevel()
     return Level;
 }
 
+void AAuraEnemy::Die()
+{
+    SetLifeSpan(LifeSpan);
+    Super::Die();
+}
+
+
 void AAuraEnemy::BeginPlay()
 {
     // 1. 首先调用父类（AActor或ACharacter）的BeginPlay()，确保引擎基础逻辑和组件正确初始化
     Super::BeginPlay();
-
+    GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
     // 2. 初始化技能系统角色信息（如AbilitySystemComponent和AttributeSet）
     // 此函数通常用于将当前敌人Actor注册到Gameplay Ability System (GAS) 中，使其能够使用技能和属性[5](@ref)
     InitAbilityActorInfo();
 
+    UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+    
     // 3. 获取并设置健康条用户控件的控制器
     // 假设HealthBar是一个UWidgetComponent或其他承载UI的组件，此行获取其上的用户控件并转换为特定类型
     if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
@@ -90,11 +101,22 @@ void AAuraEnemy::BeginPlay()
             }
         );
 
+        AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Effects_HitReact, EGameplayTagEventType::NewOrRemoved).AddUObject(
+            this,
+            &AAuraEnemy::HitReactTagChanged
+        );
+        
         // 5. 初始化UI：主动广播一次当前的生命值和最大生命值
         // 这确保了在游戏一开始，UI就能显示正确的初始状态，而不是空着等待第一次属性变化[1](@ref)
         OnHealthChanged.Broadcast(AuraAS->GetHealth());
         OnMaxHealthChanged.Broadcast(AuraAS->GetMaxHealth());
     }
+}
+
+void AAuraEnemy::HitReactTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+    bHitReacting = NewCount > 0;
+    GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
 }
 
 void AAuraEnemy::InitAbilityActorInfo()

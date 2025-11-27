@@ -6,7 +6,11 @@
 #include "AuraGameplayTagsController.h"
 #include "GameFramework/Character.h"
 #include "GameplayEffectExtension.h"
+#include "Character/AuraCharacter.h"
+#include "Interaction/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/AuraPlayerController.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -120,6 +124,8 @@ void UAuraAttributeSet::GetEffectProperties(const FGameplayEffectModCallbackData
         Props.TargetASC = &Data.Target;
     }
 }
+
+
 // 在 GameplayEffect 执行并修改属性之后调用
 void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
@@ -139,6 +145,43 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
     if (Data.EvaluatedData.Attribute == GetManaAttribute())
     {
         SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+    }
+    if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
+    {
+        const float LocalIncomingDamage = GetIncomingDamage();
+        SetIncomingDamage(0.f);
+        if (LocalIncomingDamage > 0.f)
+        {
+            const float NewHealth = GetHealth() - LocalIncomingDamage;
+            SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+
+            const bool bFatal = NewHealth <= 0.f;
+            if (bFatal)
+            {
+                ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+                if (CombatInterface)
+                {
+                    CombatInterface->Die();
+                }
+            }
+            else
+            {
+                FGameplayTagContainer TagContainer;
+                TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
+                Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+            }
+            ShowFloatingText(Props,LocalIncomingDamage);
+        }
+    }
+}
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+{
+    if (Props.SourceCharacter != Props.TargetCharacter)
+    {
+        if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter,0)))
+        {
+            PC->ShowDamageNumber(Damage,Props.TargetCharacter);
+        }
     }
 }
 // ---------------------- OnRep 回调 ----------------------

@@ -11,8 +11,14 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 {
     UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
     check(AttributeInfo);
+    // 遍历 UAuraAttributeSet 中定义的 TagsToAttributes 映射。
+    // 这个映射存储了 Gameplay Tag (Key) 到 Gameplay Attribute (Value) 的关联
     for (auto& Pair : AS->TagsToAttributes)
     {
+        // 核心步骤：获取特定属性的值变化委托（Delegate）。
+        // Pair.Value() 返回的是一个 FGameplayAttribute 实例（属性的 Getter 函数）。
+        // GetGameplayAttributeValueChangeDelegate(Attribute) 返回一个 Multicast Delegate，
+        // 当该属性的值因任何 Gameplay Effect 而改变时，它会被触发。
         AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Pair.Value()).AddLambda(
         [this, Pair](const FOnAttributeChangeData& Data)
         {

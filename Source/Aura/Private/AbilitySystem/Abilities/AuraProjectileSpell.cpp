@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTagsController.h"
 #include "Actor/AuraProjectile.h"
 #include "Interaction/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -53,6 +54,16 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
         const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
         const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+
+        
+        FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+        const float ScaledDamage = Damage.GetValueAtLevel(10);
+        // 为游戏效果规格（Gameplay Effect Spec）设置一个基于调用者（Set by Caller）的数值
+        // 这个函数的作用是：将一个浮点数值（50.f）与一个特定的游戏标签（GameplayTags.Damage）关联起来，并绑定到这次要应用的游戏效果上
+
+        //GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("Damage: %f"),ScaledDamage));
+        UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaledDamage);
+        
         Projectile->DamageEffectSpecHandle = SpecHandle;
 
         // 完成投射物的生成过程

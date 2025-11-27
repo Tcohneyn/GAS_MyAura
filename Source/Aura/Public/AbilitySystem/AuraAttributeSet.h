@@ -67,7 +67,7 @@ public:
     virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
     TMap<FGameplayTag, TStaticFuncPtr<FGameplayAttribute()>> TagsToAttributes;
-    
+      
     /*
      * 主要属性
      */
@@ -143,7 +143,13 @@ public:
     UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_Health,Category="Vital Attributes")
     FGameplayAttributeData Health;
     ATTRIBUTE_ACCESSORS(UAuraAttributeSet,Health)
+    /*
+     * 元属性
+     */
 
+    UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+    FGameplayAttributeData IncomingDamage;
+    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage);
 
     UFUNCTION()
     void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
@@ -195,4 +201,5 @@ public:
 private:
 
     void GetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
+    void ShowFloatingText(const FEffectProperties& Props, float Damage) const;
 };

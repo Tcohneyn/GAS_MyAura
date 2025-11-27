@@ -27,11 +27,45 @@ AAuraCharacterBase::AAuraCharacterBase()
     Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
     Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
     Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+   BodyDissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("BodyDissolveTimeline"));
+   WeaponDissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("WeaponDissolveTimeline"));
 }
 
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 {
     return AbilitySystemComponent;
+}
+
+UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
+{
+    return HitReactMontage;
+}
+
+void AAuraCharacterBase::Die()
+{
+    Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
+    MulticastHandleDeath();
+}
+
+// 这是一个在服务器端调用，但在所有客户端上执行的远程过程调用(RPC)函数
+// 用于处理角色死亡时的物理效果和碰撞设置
+void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+{
+    // 设置武器的物理模拟
+    Weapon->SetSimulatePhysics(true);        // 启用武器的物理模拟，使其受重力影响
+    Weapon->SetEnableGravity(true);          // 启用武器的重力效果
+    Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly); // 只启用物理碰撞
+
+    // 设置角色网格体的物理模拟
+    GetMesh()->SetSimulatePhysics(true);     // 启用角色网格体的物理模拟
+    GetMesh()->SetEnableGravity(true);       // 启用角色网格体的重力效果
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly); // 只启用物理碰撞
+    GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block); // 设置对静态物体的碰撞响应为阻挡
+
+    // 禁用胶囊体组件的碰撞
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 完全禁用胶囊体碰撞
+    Dissolve();
 }
 
 void AAuraCharacterBase::BeginPlay()
@@ -80,4 +114,20 @@ void AAuraCharacterBase::AddCharacterAbilities()
     if (!HasAuthority()) return; //检查是否拥有网络权限
 
     AuraASC->AddCharacterAbilities(StartupAbilities);
+}
+
+void AAuraCharacterBase::Dissolve()
+{
+    if (IsValid(DissolveMaterialInstance))
+    {
+        UMaterialInstanceDynamic* DynamicMatInst = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
+        GetMesh()->SetMaterial(0, DynamicMatInst);
+        StartDissolveTimeline(DynamicMatInst);
+    }
+    if (IsValid(WeaponDissolveMaterialInstance))
+    {
+        UMaterialInstanceDynamic* DynamicMatInst = UMaterialInstanceDynamic::Create(WeaponDissolveMaterialInstance, this);
+        Weapon->SetMaterial(0, DynamicMatInst);
+        StartWeaponDissolveTimeline(DynamicMatInst);
+    }
 }

@@ -75,19 +75,16 @@ UAttributeMenuWidgetController* UAuraAbilitySystemLibrary::GetAttributeMenuWidge
 //   - ASC: 目标角色的AbilitySystemComponent，用于应用GameplayEffect
 void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC)
 {
-    // 1. 获取游戏模式并转换为项目特定的AuraGameModeBase
-    // 游戏模式通常持有全局配置数据，如角色职业信息[8](@ref)
-    AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
-    // 安全检查：如果获取游戏模式失败，则直接返回
-    if (AuraGameMode == nullptr) return;
-
+    
     // 2. 获取AbilitySystemComponent的所有者角色（AvatarActor）
     // Avatar是游戏世界中具体代表该ASC的实体[6](@ref)
     AActor* AvatarActor = ASC->GetAvatarActor();
 
     // 3. 从游戏模式中获取角色职业信息数据资产
     // 这个数据资产应包含不同职业的属性配置[8](@ref)
-    UCharacterClassInfo* CharacterClassInfo = AuraGameMode->CharacterClassInfo;
+    UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+    if (!CharacterClassInfo) return;
+    
     // 根据传入的职业枚举，获取该职业的默认属性配置
     FCharacterClassDefaultInfo ClassDefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
 
@@ -114,4 +111,22 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
     VitalAttributesContextHandle.AddSourceObject(AvatarActor);
     const FGameplayEffectSpecHandle VitalAttributesSpecHandle = ASC->MakeOutgoingSpec(CharacterClassInfo->VitalAttributes, Level, VitalAttributesContextHandle);
     ASC->ApplyGameplayEffectSpecToSelf(*VitalAttributesSpecHandle.Data.Get());
+}
+
+void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC)
+{
+    UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+    if (!CharacterClassInfo) return;
+    for (TSubclassOf<UGameplayAbility> AbilityClass : CharacterClassInfo->CommonAbilities)
+    {
+        FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
+        ASC->GiveAbility(AbilitySpec);
+    }
+}
+
+UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
+{
+    AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
+    if (AuraGameMode == nullptr) return nullptr;
+    return AuraGameMode->CharacterClassInfo;
 }
