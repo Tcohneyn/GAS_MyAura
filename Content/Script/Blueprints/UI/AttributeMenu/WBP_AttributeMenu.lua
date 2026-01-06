@@ -56,6 +56,11 @@ function M:SetAttributeTags()
    self.Row_ManaRegeneration.AttributeTag = GameplayTagsManager("Attributes.Secondary.ManaRegeneration")
    self.Row_MaxHealth.AttributeTag = GameplayTagsManager("Attributes.Secondary.MaxHealth")
    self.Row_MaxMana.AttributeTag = GameplayTagsManager("Attributes.Secondary.MaxMana")
+   --抗性属性
+   self.Row_FireResistance.AttributeTag = GameplayTagsManager("Attributes.Resistance.Fire")
+   self.Row_LightningResistance.AttributeTag = GameplayTagsManager("Attributes.Resistance.Lightning")
+   self.Row_ArcaneResistance.AttributeTag = GameplayTagsManager("Attributes.Resistance.Arcane")
+   self.Row_PhysicalResistance.AttributeTag = GameplayTagsManager("Attributes.Resistance.Physical")
 end
 
 -- function M:WidgetControllerSet()

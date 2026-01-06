@@ -67,7 +67,10 @@ void AAuraEnemy::BeginPlay()
     // 此函数通常用于将当前敌人Actor注册到Gameplay Ability System (GAS) 中，使其能够使用技能和属性[5](@ref)
     InitAbilityActorInfo();
 
-    UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+    if (HasAuthority())
+    {
+        UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);	
+    }
     
     // 3. 获取并设置健康条用户控件的控制器
     // 假设HealthBar是一个UWidgetComponent或其他承载UI的组件，此行获取其上的用户控件并转换为特定类型
@@ -126,7 +129,10 @@ void AAuraEnemy::InitAbilityActorInfo()
     {
         AbilitySystemComponent->InitAbilityActorInfo(this, this);
         Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
-        InitializeDefaultAttributes();
+        if (HasAuthority())
+        {
+            InitializeDefaultAttributes();		
+        }
     }
 }
 

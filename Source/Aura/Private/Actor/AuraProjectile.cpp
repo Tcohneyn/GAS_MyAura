@@ -47,7 +47,7 @@ void AAuraProjectile::Destroyed()
     {
         UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-        LoopingSoundComponent->Stop();
+        if (LoopingSoundComponent) LoopingSoundComponent->Stop();
     }
     Super::Destroyed();
 }
@@ -62,6 +62,12 @@ void AAuraProjectile::OnSphereOverlap(
     bool bFromSweep,                          // 是否来自扫描检测（true）或简单重叠检测（false）
     const FHitResult& SweepResult)           // 扫描检测的详细命中结果（包含位置、法线等信息）
 {
+    if (DamageEffectSpecHandle.Data.IsValid() && DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
+    {
+        return;
+    }
+    if (!bHit)
+    {
     // 1. 在碰撞位置播放冲击音效
     // 使用UGameplayStatics工具类在世界的碰撞点播放一个一次性的声音
     UGameplayStatics::PlaySoundAtLocation(
@@ -81,8 +87,8 @@ void AAuraProjectile::OnSphereOverlap(
 
     // 3. 停止投射物自身的循环音效（如飞行呼啸声）
     // 假设LoopingSoundComponent是一个指向UAudioComponent的指针，用于播放循环飞行音效
-    LoopingSoundComponent->Stop();
-
+    if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+    }
     // 4. 网络游戏中的权威判断：检查当前实例是否在服务器上运行
     if (HasAuthority()) // 仅在服务器端执行销毁逻辑
     {

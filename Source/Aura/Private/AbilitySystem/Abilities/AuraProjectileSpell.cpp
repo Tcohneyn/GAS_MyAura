@@ -35,7 +35,6 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
         // 这个位置将作为投射物的生成起点
         const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
         FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
-        Rotation.Pitch = 0.f;
         
         // 创建投射物的初始变换（Transform）
         FTransform SpawnTransform;
@@ -53,16 +52,27 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
         );
 
         const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-        const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
-
+        FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+        EffectContextHandle.SetAbility(this);
+        EffectContextHandle.AddSourceObject(Projectile);
+        TArray<TWeakObjectPtr<AActor>> Actors;
+        Actors.Add(Projectile);
+        EffectContextHandle.AddActors(Actors);
+        FHitResult HitResult;
+        HitResult.Location = ProjectileTargetLocation;
+        EffectContextHandle.AddHitResult(HitResult);
+        const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
         
         FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
-        const float ScaledDamage = Damage.GetValueAtLevel(10);
         // 为游戏效果规格（Gameplay Effect Spec）设置一个基于调用者（Set by Caller）的数值
         // 这个函数的作用是：将一个浮点数值（50.f）与一个特定的游戏标签（GameplayTags.Damage）关联起来，并绑定到这次要应用的游戏效果上
 
         //GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("Damage: %f"),ScaledDamage));
-        UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaledDamage);
+        for (auto& Pair : DamageTypes)
+        {
+            const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
+            UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage);
+        }
         
         Projectile->DamageEffectSpecHandle = SpecHandle;
 

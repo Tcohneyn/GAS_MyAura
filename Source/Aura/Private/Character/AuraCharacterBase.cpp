@@ -104,6 +104,8 @@ void AAuraCharacterBase::InitializeDefaultAttributes() const
     ApplyEffectToSelf(DefaultPrimaryAttributes, 1.f);
     //派生属性
     ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f);
+    //抗性属性
+    ApplyEffectToSelf(DefaultResistanceAttributes, 1.f);
     //核心属性
     ApplyEffectToSelf(DefaultVitalAttributes, 1.f);
 }
