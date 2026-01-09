@@ -21,6 +21,7 @@ void AAuraEffectActor::BeginPlay()
 // ===============================
 void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
+    if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
     // 从目标 Actor 获取 AbilitySystemComponent（核心能力系统组件）
     // 如果目标不具备 ASC（比如不是可受效果的角色），直接返回
     UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
@@ -56,6 +57,11 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
     {
         ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
     }
+    
+    if (!bIsInfinite)
+    {
+        Destroy();
+    }
 }
 
 // ===============================
@@ -63,6 +69,7 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 // ===============================
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
+    if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
     // 如果瞬时效果的应用策略是 "重叠时应用"
     if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
     {
@@ -88,6 +95,7 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 // ===============================
 void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
+    if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
     // 瞬时效果策略：结束重叠时应用
     if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
     {

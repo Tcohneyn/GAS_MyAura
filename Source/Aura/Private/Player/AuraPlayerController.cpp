@@ -136,7 +136,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
                     // 绘制调试球体，显示路径点（绿色，持续5秒）
                     //DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
                 }
-                CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+                if (NavPath->PathPoints.Num() > 0)
+                {
+                    CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+                }
                 
                 // 设置自动寻路状态为true
                 bAutoRunning = true;

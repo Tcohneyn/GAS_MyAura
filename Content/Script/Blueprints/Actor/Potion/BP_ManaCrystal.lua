@@ -16,7 +16,6 @@ end
 
 function M:OnCapsuleOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult)
     self:ApplyEffectToTarget(OtherActor, self.DurationGameplayEffectClass)
-    self:K2_DestroyActor()
 end
 
 return M

@@ -45,7 +45,10 @@ protected:
     void OnEndOverlap(AActor* TargetActor);
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
-    bool bDestroyOnEffectRemoval = false;   //是否在移除后销毁 Actor
+    bool bDestroyOnEffectApplication  = false;   //是否在移除后销毁 Actor
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
+    bool bApplyEffectsToEnemies = false;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly,Category = "Applied Effects")
     TSubclassOf<UGameplayEffect> InstantGameplayEffectClass;

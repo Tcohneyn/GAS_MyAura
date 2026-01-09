@@ -17,7 +17,6 @@ end
 
 function M:OnSphereOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult)
     self:ApplyEffectToTarget(OtherActor, self.InstantGameplayEffectClass)
-    self:K2_DestroyActor()
 end
 
 return M
