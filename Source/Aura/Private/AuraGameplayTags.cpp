@@ -21,4 +21,5 @@ namespace Message
 namespace Event
 {
   UE_DEFINE_GAMEPLAY_TAG(Event_Montage_Firebolt, "Event.Montage.Firebolt");
+  //UE_DEFINE_GAMEPLAY_TAG(Event_Montage_Attack_Melee, "Event.Montage.Attack.Melee");
 }

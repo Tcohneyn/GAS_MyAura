@@ -24,5 +24,6 @@ namespace Message
 namespace Event
 {
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_Firebolt);
+    //AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_Attack_Melee);
 }
 #endif  // !GAMEPLAYTAGS_H

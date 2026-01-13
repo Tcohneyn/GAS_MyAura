@@ -32,7 +32,7 @@ end
 function M:StartWeaponDissolveTimeline(DynamicMaterialInstance)
    self.DMI1 = DynamicMaterialInstance
    --self.WeaponDissolveUpdate:Bind(self, M.OnDissolveUpdate1)
-   if self.DissolveCurve then
+   if self.DissolveCurve and self.WeaponDissolveTimeline then
       self.WeaponDissolveTimeline:AddInterpFloat(self.DissolveCurve, function()
                -- 1. 获取 Timeline 当前播放到了几秒
          local CurrentTime = self.BodyDissolveTimeline:GetPlaybackPosition()
@@ -42,11 +42,19 @@ function M:StartWeaponDissolveTimeline(DynamicMaterialInstance)
             self.DMI1:SetScalarParameterValue("Dissolve", val)
          end
       end)
+      self.WeaponDissolveTimeline:SetLooping(false)
+      self.WeaponDissolveTimeline:Play()
    end
-   self.WeaponDissolveTimeline:SetLooping(false)
-   self.WeaponDissolveTimeline:Play()
 end
 
+function M:UpdateFacingTarget(Target)
+    --安全检查：如果组件不存在则退出
+    if not self.MotionWarpingComponent then
+        print("Error: MotionWarping component is nil!")
+        return
+    end
+   self.MotionWarpingComponent:AddOrUpdateWarpTargetFromLocation("FaceTarget", Target)
+end
 -- function M:OnDissolveUpdate(DissolveValue)
 
 -- end

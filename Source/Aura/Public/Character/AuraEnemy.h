@@ -9,6 +9,7 @@
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AuraEnemy.generated.h"
 
+class UMotionWarpingComponent;
 class UWidgetComponent;
 class UBehaviorTree;
 class AAuraAIController;
@@ -31,7 +32,12 @@ public:
     /** Combat Interface */
     virtual int32 GetPlayerLevel() override;
     virtual void Die() override;
+    virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
+    virtual AActor* GetCombatTarget_Implementation() const override;
     /** end Combat Interface */
+    UPROPERTY(BlueprintReadWrite, Category = "Combat")
+    TObjectPtr<AActor> CombatTarget;
+    
     UPROPERTY(BlueprintAssignable)
     FOnAttributeChangedSignature OnHealthChanged;
 
@@ -43,7 +49,7 @@ public:
     UPROPERTY(BlueprintReadOnly, Category = "Combat")
     bool bHitReacting = false;
 
-    UPROPERTY(BlueprintReadOnly, Category = "Combat")
+    UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Combat")
     float BaseWalkSpeed = 250.f;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
@@ -70,4 +76,10 @@ protected:
     
     UPROPERTY()
     TObjectPtr<AAuraAIController> AuraAIController;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWarping")
+    TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
+    
+    UFUNCTION(BlueprintPure)
+    virtual UMotionWarpingComponent* GetMotionWarpingComponent() const {return MotionWarpingComponent;}
 };

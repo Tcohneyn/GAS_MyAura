@@ -14,12 +14,15 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Widget/AuraUserWidget.h"
+#include "MotionWarpingComponent.h"
 
 AAuraEnemy::AAuraEnemy()
 {
     // 设置角色的网格体 (SkeletalMeshComponent) 对 "可见性通道" 的碰撞响应为 "阻挡"。
     // 这样做的目的通常是让射线检测（比如鼠标悬停、瞄准线 TraceChannel）能够命中敌人。
     GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+
+    MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComp"));
 
     AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
     AbilitySystemComponent->SetIsReplicated(true);
@@ -30,11 +33,13 @@ AAuraEnemy::AAuraEnemy()
     bUseControllerRotationYaw = false;
     GetCharacterMovement()->bUseControllerDesiredRotation = true;
     GetCharacterMovement()->RotationRate.Yaw = 400.f;
-    
+
     AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
     HealthBar = CreateDefaultSubobject<UWidgetComponent>("HealthBar");
     HealthBar->SetupAttachment(GetRootComponent());
+
 }
+
 void AAuraEnemy::PossessedBy(AController* NewController)
 {
     Super::PossessedBy(NewController);
@@ -78,6 +83,15 @@ void AAuraEnemy::Die()
     Super::Die();
 }
 
+void AAuraEnemy::SetCombatTarget_Implementation(AActor* InCombatTarget)
+{
+    CombatTarget = InCombatTarget;
+}
+
+AActor* AAuraEnemy::GetCombatTarget_Implementation() const
+{
+    return CombatTarget;
+}
 
 void AAuraEnemy::BeginPlay()
 {
@@ -90,9 +104,9 @@ void AAuraEnemy::BeginPlay()
 
     if (HasAuthority())
     {
-        UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);	
+        UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent, CharacterClass);
     }
-    
+
     // 3. 获取并设置健康条用户控件的控制器
     // 假设HealthBar是一个UWidgetComponent或其他承载UI的组件，此行获取其上的用户控件并转换为特定类型
     if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
@@ -114,7 +128,7 @@ void AAuraEnemy::BeginPlay()
                 // 任何绑定到此OnHealthChanged委托的UI元素（如血条Progress Bar）都会收到通知[1](@ref)
                 OnHealthChanged.Broadcast(Data.NewValue);
             }
-        );
+            );
 
         // 4.2 为"最大生命值（MaxHealth）"属性注册变化监听委托
         AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAS->GetMaxHealthAttribute()).AddLambda(
@@ -123,13 +137,14 @@ void AAuraEnemy::BeginPlay()
                 // 当MaxHealth变化时（例如受到某种效果影响），广播新的最大值，UI据此调整血条总长度
                 OnMaxHealthChanged.Broadcast(Data.NewValue);
             }
-        );
+            );
 
-        AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Effects_HitReact, EGameplayTagEventType::NewOrRemoved).AddUObject(
-            this,
-            &AAuraEnemy::HitReactTagChanged
-        );
-        
+        AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Effects_HitReact, EGameplayTagEventType::NewOrRemoved).
+                                AddUObject(
+                                    this,
+                                    &AAuraEnemy::HitReactTagChanged
+                                    );
+
         // 5. 初始化UI：主动广播一次当前的生命值和最大生命值
         // 这确保了在游戏一开始，UI就能显示正确的初始状态，而不是空着等待第一次属性变化[1](@ref)
         OnHealthChanged.Broadcast(AuraAS->GetHealth());
@@ -141,7 +156,10 @@ void AAuraEnemy::HitReactTagChanged(const FGameplayTag CallbackTag, int32 NewCou
 {
     bHitReacting = NewCount > 0;
     GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
-    AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
+    if (AuraAIController && AuraAIController->GetBlackboardComponent())
+    {
+        AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
+    }
 }
 
 void AAuraEnemy::InitAbilityActorInfo()
@@ -153,7 +171,7 @@ void AAuraEnemy::InitAbilityActorInfo()
         Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
         if (HasAuthority())
         {
-            InitializeDefaultAttributes();		
+            InitializeDefaultAttributes();
         }
     }
 }
