@@ -63,7 +63,7 @@ void AAuraProjectile::OnSphereOverlap(
     bool bFromSweep,                          // 是否来自扫描检测（true）或简单重叠检测（false）
     const FHitResult& SweepResult)           // 扫描检测的详细命中结果（包含位置、法线等信息）
 {
-    if (DamageEffectSpecHandle.Data.IsValid() && DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
+    if (!DamageEffectSpecHandle.Data.IsValid() || DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
     {
         return;
     }
