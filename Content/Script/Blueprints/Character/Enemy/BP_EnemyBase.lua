@@ -53,7 +53,7 @@ function M:UpdateFacingTarget(Target)
         print("Error: MotionWarping component is nil!")
         return
     end
-   self.MotionWarpingComponent:AddOrUpdateWarpTargetFromLocation("FaceTarget", Target)
+   self.MotionWarpingComponent:AddOrUpdateWarpTargetFromLocation("FacingTarget", Target)
 end
 -- function M:OnDissolveUpdate(DissolveValue)
 

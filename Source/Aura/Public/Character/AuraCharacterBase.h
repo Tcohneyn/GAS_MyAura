@@ -41,7 +41,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-    UPROPERTY(EditDefaultsOnly,Category="Combat")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Combat")
     TObjectPtr<USkeletalMeshComponent> Weapon;
 
     UPROPERTY(EditAnywhere, Category = "Combat")

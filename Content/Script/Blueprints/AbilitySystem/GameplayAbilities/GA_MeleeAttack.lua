@@ -14,7 +14,7 @@ function M:K2_ActivateAbility()
     local CombatTarget = AvatarActor:GetCombatTarget()
     AvatarActor:Cast(UE.UCombatInterface).UpdateFacingTarget(CombatTarget:K2_GetActorLocation())
     self.HasAttackedMontage = false
-    local FTaggedMontage = self:GetAttackMontages(AvatarActor)
+    local FTaggedMontage = self:GetFTaggedMontage(AvatarActor)
     if self.HasAttackedMontage then
         local PlayMontageTask = UE.UAbilityTask_PlayMontageAndWait.CreatePlayMontageAndWaitProxy(self, "PlayMontageTask",
             FTaggedMontage.Montage)
@@ -37,7 +37,7 @@ end
 
 function M:OnEventReceived(Payload)
     local AvatarActor = self:GetAvatarActorFromActorInfo()
-    local FTaggedMontage = self:GetAttackMontages(AvatarActor)
+    local FTaggedMontage = self:GetFTaggedMontage(AvatarActor)
     local CombatSocketLocation = AvatarActor:GetCombatSocketLocation(FTaggedMontage.MontageTag)
     local OutOverlappingActors = UE.UAuraAbilitySystemLibrary.GetLivePlayersWithinRadius(AvatarActor, AvatarActor, 45.0,
         CombatSocketLocation)
@@ -56,7 +56,7 @@ function M:OnEventReceived(Payload)
     self:K2_EndAbility()
 end
 
-function M:GetAttackMontages(AvatarActor)
+function M:GetFTaggedMontage(AvatarActor)
     local AttackMontages = AvatarActor:GetAttackMontages()
     local length = AttackMontages:Num()
     if length > 0 then
