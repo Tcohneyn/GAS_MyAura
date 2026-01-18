@@ -20,7 +20,7 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
-void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation)
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag, bool bOverridePitch, float PitchOverride)
 {
     // 检查当前是否在服务器端运行（权威端）
     // 在多人游戏中，关键逻辑（如生成投射物）必须在服务器上执行以保证同步
@@ -29,14 +29,18 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 
     // 通过战斗接口获取特定的骨骼套接字位置（例如右手或武器尖端）
     // 这个位置将作为投射物的生成起点
-    const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(),FAuraGameplayTags::Get().Montage_Attack_Weapon);
+    const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(),SocketTag);
     FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
 
+    if (bOverridePitch)
+    {
+        Rotation.Pitch = PitchOverride;
+    }
     // 创建投射物的初始变换（Transform）
     FTransform SpawnTransform;
     SpawnTransform.SetLocation(SocketLocation); // 设置生成位置
     SpawnTransform.SetRotation(Rotation.Quaternion());
-
+    
     // 使用延迟生成方式创建投射物Actor
     // 延迟生成允许我们在投射物完全初始化之前配置其属性，避免不必要的中间状态或重复初始化[6,7](@ref)
     AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(

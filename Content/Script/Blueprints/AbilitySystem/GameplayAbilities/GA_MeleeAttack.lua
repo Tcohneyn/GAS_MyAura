@@ -38,7 +38,7 @@ end
 function M:OnEventReceived(Payload)
     local AvatarActor = self:GetAvatarActorFromActorInfo()
     local FTaggedMontage = self:GetFTaggedMontage(AvatarActor)
-    local CombatSocketLocation = AvatarActor:GetCombatSocketLocation(FTaggedMontage.MontageTag)
+    local CombatSocketLocation = AvatarActor:GetCombatSocketLocation(FTaggedMontage.SocketTag)
     local OutOverlappingActors = UE.UAuraAbilitySystemLibrary.GetLivePlayersWithinRadius(AvatarActor, AvatarActor, 45.0,
         CombatSocketLocation)
     for i = 1, OutOverlappingActors:Num() do
@@ -49,11 +49,22 @@ function M:OnEventReceived(Payload)
                 print("检测到目标: " .. Actor:GetName())
                 self:CauseDamage(Actor)
                 UE.UKismetSystemLibrary.DrawDebugSphere(self, Actor:K2_GetActorLocation(), 15, 12, self.LineColor, 3.0,
-                    1.0)
+                1.0)
+                self.HasHitTarget = true
             end
         end
     end
-    self:K2_EndAbility()
+    if self.HasHitTarget then
+        local params = UE.FGameplayCueParameters()
+        params.Location = CombatSocketLocation
+        params.SourceObject = AvatarActor:GetCombatTarget()
+        params.EffectCauser = AvatarActor
+        params.AggregatedSourceTags = UE.UBlueprintGameplayTagLibrary.MakeGameplayTagContainerFromTag(FTaggedMontage.MontageTag)
+        self:K2_ExecuteGameplayCueWithParams(self.GameplayCueTag,params)
+        self:K2_EndAbility()
+    else
+        self:K2_EndAbility()
+    end
 end
 
 function M:GetFTaggedMontage(AvatarActor)

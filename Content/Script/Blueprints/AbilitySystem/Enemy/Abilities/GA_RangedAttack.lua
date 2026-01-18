@@ -21,7 +21,7 @@ function M:K2_ActivateAbility()
     PlayMontageTask.OnCancelled:Add(self, M.OnMontage)
     PlayMontageTask:ReadyForActivation()
     local WaitEventTask = UE.UAbilityTask_WaitGameplayEvent.WaitGameplayEvent(self, FTaggedMontage.MontageTag, nil,
-        false, true)
+        true, true)
     WaitEventTask.EventReceived:Add(self, M.OnEventReceived)
     WaitEventTask:ReadyForActivation()
 end
@@ -31,10 +31,13 @@ end
 
 function M:OnEventReceived(Payload)
     local AvatarActor = self:GetAvatarActorFromActorInfo()
-    local FTaggedMontage = AvatarActor:GetAttackMontages()
+    local AttackMontages = AvatarActor:GetAttackMontages()
+    local FTaggedMontage = self:GetRandomTaggedMontageFromArray(AttackMontages)
     local CombatSocketLocation = AvatarActor:GetCombatSocketLocation(FTaggedMontage.MontageTag)
     local CombatTarget = AvatarActor:GetCombatTarget()
-    self:SpawnProjectile(CombatTarget:K2_GetActorLocation())
+    --local SocketTagName = UE.UBlueprintGameplayTagLibrary.GetTagName(FTaggedMontage.SocketTag)
+    --print("FTaggedMontage.SocketTag:" .. SocketTagName)
+    self:SpawnProjectile(CombatTarget:K2_GetActorLocation(), FTaggedMontage.SocketTag,self.bShouldOverridePitch,self.PitchOverride)
     coroutine.resume(coroutine.create(
      function()    
             UE.UKismetSystemLibrary.Delay(self,0.5)

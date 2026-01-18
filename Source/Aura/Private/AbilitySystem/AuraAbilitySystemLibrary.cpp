@@ -252,6 +252,7 @@ bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondAc
     return !bFriends;
 }
 
+
 bool UAuraAbilitySystemLibrary::IsNoAuraCharacterBaseIgnored(const TArray<AActor*>& ActorsToIgnore)
 {
     for (AActor* IgnoredActor : ActorsToIgnore)
@@ -275,4 +276,19 @@ bool UAuraAbilitySystemLibrary::IsNoAuraCharacterBaseIgnored(const TArray<AActor
     }
     // 遍历完成，没有找到任何AAuraCharacterBase的实例
     return true;
+}
+void UAuraAbilitySystemLibrary::ShuffleSpawnLocations(TArray<FVector>& Locations)
+{
+    if (Locations.Num() > 0)
+    {
+        const int32 LastIndex = Locations.Num() - 1;
+        for (int32 i = 0; i <= LastIndex; ++i)
+        {
+            int32 Index = FMath::RandRange(i, LastIndex);
+            if (i != Index)
+            {
+                Locations.Swap(i, Index);
+            }
+        }
+    }
 }

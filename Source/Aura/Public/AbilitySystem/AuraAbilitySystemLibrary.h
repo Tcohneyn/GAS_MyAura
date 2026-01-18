@@ -56,6 +56,8 @@ public:
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystemLibrary|GameplayMechanics")
     static bool IsNotFriend(AActor* FirstActor, AActor* SecondActor);
 
+    UFUNCTION(BlueprintCallable, Category = "Summoning")
+    static void ShuffleSpawnLocations(UPARAM(ref) TArray<FVector>& Locations);
 private:
     static bool IsNoAuraCharacterBaseIgnored(const TArray<AActor*>& ActorsToIgnore);
 };

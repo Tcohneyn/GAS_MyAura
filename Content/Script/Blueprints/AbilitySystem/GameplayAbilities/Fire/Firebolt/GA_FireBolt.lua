@@ -38,7 +38,7 @@ end
 
 function M:OnEventReceived(Payload)
     --UE.UKismetSystemLibrary.PrintString(self, "Firebolt Hit Event Received")
-    self:SpawnProjectile(self.Location)
+    self:SpawnProjectile(self.Location, self.SocketTag)
     coroutine.resume(coroutine.create(
      function()    
             UE.UKismetSystemLibrary.Delay(self,0.5)

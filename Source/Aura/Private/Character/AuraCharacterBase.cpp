@@ -8,6 +8,7 @@
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/ContentEncryptionConfig.h"
+#include "Kismet/GameplayStatics.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -53,6 +54,7 @@ void AAuraCharacterBase::Die()
 // 用于处理角色死亡时的物理效果和碰撞设置
 void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 {
+    UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), GetActorRotation());
     // 设置武器的物理模拟
     Weapon->SetSimulatePhysics(true);        // 启用武器的物理模拟，使其受重力影响
     Weapon->SetEnableGravity(true);          // 启用武器的重力效果
@@ -79,17 +81,21 @@ void AAuraCharacterBase::BeginPlay()
 FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag)
 {
     const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-    if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_Weapon) && IsValid(Weapon))
+    if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_Weapon) && IsValid(Weapon))
     {
         return Weapon->GetSocketLocation(WeaponTipSocketName);
     }
-    if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_LeftHand))
+    if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_LeftHand))
     {
         return GetMesh()->GetSocketLocation(LeftHandSocketName);
     }
-    if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_RightHand))
+    if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_RightHand))
     {
         return GetMesh()->GetSocketLocation(RightHandSocketName);
+    }
+    if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_Tail))
+    {
+        return GetMesh()->GetSocketLocation(TailSocketName);
     }
     return FVector();
 }
@@ -107,6 +113,26 @@ AActor* AAuraCharacterBase::GetAvatar_Implementation()
 TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation()
 {
     return AttackMontages;
+}
+
+UNiagaraSystem* AAuraCharacterBase::GetBloodEffect_Implementation()
+{
+    return BloodEffect;
+}
+
+FTaggedMontage AAuraCharacterBase::GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag)
+{
+    return ICombatInterface::GetTaggedMontageByTag_Implementation(MontageTag);
+}
+
+int32 AAuraCharacterBase::GetMinionCount_Implementation()
+{
+    return MinionCount;
+}
+
+void AAuraCharacterBase::IncremenetMinionCount_Implementation(int32 Amount)
+{
+    MinionCount += Amount;
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()
