@@ -3,6 +3,8 @@
 
 #include "AbilitySystem/Data/AttributeInfo.h"
 
+#include "Aura/AuraLogChannels.h"
+
 // 函数定义：在属性信息数组中查找与给定标签完全匹配的属性信息
 // 参数：
 //   - AttributeTag: 要查找的游戏玩法标签（FGameplayTag类型）
@@ -25,7 +27,7 @@ FAuraAttributeInfo UAttributeInfo::FindAttributeInfoForTag(const FGameplayTag& A
     if (bLogNotFound)
     {
         // 记录错误日志，显示未能找到哪个标签以及在哪一个AttributeInfo资产中
-        UE_LOG(LogTemp, Error, TEXT("Can't find Info for AttributeTag [%s] on AttributeInfo [%s]."), 
+        UE_LOG(LogAura, Error, TEXT("Can't find Info for AttributeTag [%s] on AttributeInfo [%s]."), 
                *AttributeTag.ToString(),    // 将标签转换为字符串用于显示
                *GetNameSafe(this));          // 获取当前对象的名称用于显示
     }

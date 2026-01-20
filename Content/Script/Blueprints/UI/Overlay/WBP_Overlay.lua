@@ -10,8 +10,7 @@ require("LuaPanda").start("127.0.0.1", 8818)
 local M = UnLua.Class()
 
 function M:WidgetControllerSet()
-   UE.UAuraUserWidget.SetWidgetController(self.WBP_HealthGlobe, self.WidgetController)
-   UE.UAuraUserWidget.SetWidgetController(self.WBP_ManaGlobe, self.WidgetController)
+   UE.UAuraUserWidget.SetWidgetController(self.WBP_HealthManaSpells, self.WidgetController)
    --接收数据表行
    self.WidgetController:Cast(UE.UBP_OverlayWidgetController_C).MessageWidgetRowDelegate:Add(self, M.OnMessageWidgetRow)
 end

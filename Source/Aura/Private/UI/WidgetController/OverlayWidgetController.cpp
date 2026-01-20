@@ -5,6 +5,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 // 用于将初始属性值广播给 UI
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -43,30 +44,75 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
     // 从 AbilitySystemComponent 获取 "Health 属性" 的 Delegate
     // 并将本类的 HealthChanged 函数绑定到该 Delegate 上
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetHealthAttribute()).AddLambda(
-            [this](const FOnAttributeChangeData& Data)
-            {
-                OnHealthChanged.Broadcast(Data.NewValue);
-            }
+        [this](const FOnAttributeChangeData& Data)
+        {
+            OnHealthChanged.Broadcast(Data.NewValue);
+        }
         );
     // 绑定最大生命值变化回调
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetMaxHealthAttribute()).AddLambda(
-            [this](const FOnAttributeChangeData& Data)
-            {
-                OnMaxHealthChanged.Broadcast(Data.NewValue);
-            }
+        [this](const FOnAttributeChangeData& Data)
+        {
+            OnMaxHealthChanged.Broadcast(Data.NewValue);
+        }
         );
     // 绑定魔力值变化回调：
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetManaAttribute()).AddLambda(
-            [this](const FOnAttributeChangeData& Data)
-            {
-                OnManaChanged.Broadcast(Data.NewValue);
-            }
+        [this](const FOnAttributeChangeData& Data)
+        {
+            OnManaChanged.Broadcast(Data.NewValue);
+        }
         );
     // 绑定最大魔力值变化回调
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetMaxManaAttribute()).AddLambda(
-            [this](const FOnAttributeChangeData& Data)
-            {
-                OnMaxManaChanged.Broadcast(Data.NewValue);
-            }
+        [this](const FOnAttributeChangeData& Data)
+        {
+            OnMaxManaChanged.Broadcast(Data.NewValue);
+        }
         );
+    if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
+    {
+        if (AuraASC->bStartupAbilitiesGiven)
+        {
+            OnInitializeStartupAbilities(AuraASC);
+        }
+        else
+        {
+            AuraASC->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::OnInitializeStartupAbilities);
+        }
+
+        AuraASC->EffectAssetTags.AddLambda(
+            [this](const FGameplayTagContainer& AssetTags)
+            {
+                for (const FGameplayTag& Tag : AssetTags)
+                {
+
+                    // 举例来说，假设 Tag = Message.HealthPotion（消息.治疗药水）
+                    // "Message.HealthPotion".MatchesTag("Message") 将返回 True，
+                    // 而 "Message".MatchesTag("Message.HealthPotion") 将返回 False
+                    FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
+                    if (Tag.MatchesTag(MessageTag))
+                    {
+                        const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
+                        MessageWidgetRowDelegate.Broadcast(*Row);
+                    }
+                }
+            }
+            );
+    }
+}
+
+void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent)
+{
+    // TODO 获取所有给定技能的信息，查找对应的技能详情，并将其广播到各个 UI 控件
+    if (!AuraAbilitySystemComponent->bStartupAbilitiesGiven) return;
+    FForEachAbility BroadcastDelegate;
+    BroadcastDelegate.BindLambda([this, AuraAbilitySystemComponent](const FGameplayAbilitySpec& AbilitySpec)
+    {
+        //TODO 需要一种方法，能够根据给定的技能规格（Ability Spec）查找出其对应的技能标签（Ability Tag）
+        FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec));
+        Info.InputTag = AuraAbilitySystemComponent->GetInputTagFromSpec(AbilitySpec);
+        AbilityInfoDelegate.Broadcast(Info);
+    });
+    AuraAbilitySystemComponent->ForEachAbility(BroadcastDelegate);
 }
