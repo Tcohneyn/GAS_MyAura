@@ -21,6 +21,7 @@ void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AAuraPlayerState, Level);  //注册属性，当值发生变化时将其从服务器同步到所有相关的客户端
+    DOREPLIFETIME(AAuraPlayerState, XP);
 }
 
 UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
@@ -28,6 +29,34 @@ UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
+void AAuraPlayerState::AddToXP(int32 InXP)
+{
+    XP += InXP;
+    OnXPChangedDelegate.Broadcast(XP);
+}
+
+void AAuraPlayerState::AddToLevel(int32 InLevel)
+{
+    Level += InLevel;
+    OnLevelChangedDelegate.Broadcast(Level);
+}
+
+void AAuraPlayerState::SetXP(int32 InXP)
+{
+    XP = InXP;
+    OnXPChangedDelegate.Broadcast(XP);
+}
+
+void AAuraPlayerState::SetLevel(int32 InLevel)
+{
+    Level = InLevel;
+    OnLevelChangedDelegate.Broadcast(Level);
+}
 void AAuraPlayerState::OnRep_Level(int32 OldLevel)
 {
+    OnLevelChangedDelegate.Broadcast(Level);
+}
+void AAuraPlayerState::OnRep_XP(int32 OldXP)
+{
+    OnXPChangedDelegate.Broadcast(XP);
 }

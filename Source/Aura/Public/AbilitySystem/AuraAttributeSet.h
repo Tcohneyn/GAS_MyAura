@@ -171,6 +171,9 @@ UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_FireResistance, Category = 
     FGameplayAttributeData IncomingDamage;
     ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage);
 
+    UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+    FGameplayAttributeData IncomingXP;
+    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingXP);
     UFUNCTION()
     void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
     UFUNCTION()
@@ -234,4 +237,5 @@ private:
 
     void GetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
     void ShowFloatingText(const FEffectProperties& Props, float Damage, bool bBlockedHit, bool bCriticalHit) const;
+    void SendXPEvent(const FEffectProperties& Props);
 };

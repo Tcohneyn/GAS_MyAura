@@ -28,6 +28,7 @@ struct FUIWidgetRow : public FTableRowBase
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* Image = nullptr;
 };
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChangedSignature, int32, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature, const FAuraAbilityInfo&, Info);
@@ -60,6 +61,12 @@ public:
     //能力信息委托
     UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
     FAbilityInfoSignature AbilityInfoDelegate;
+    //经验百分比委托
+    UPROPERTY(BlueprintAssignable, Category="GAS|XP")
+    FOnAttributeChangedSignature OnXPPercentChangedDelegate;
+
+    UPROPERTY(BlueprintAssignable, Category="GAS|Level")
+    FOnPlayerStatChangedSignature OnPlayerLevelChangedDelegate;
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data")
     TObjectPtr<UDataTable> MessageWidgetDataTable;
@@ -71,6 +78,8 @@ protected:
     T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
 
     void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent);
+
+    void OnXPChanged(int32 NewXP) const;
 };
 //从指定的 DataTable 中查找与给定 GameplayTag 匹配的行
 template <typename T>

@@ -19,7 +19,7 @@ print("StartDissolveTimeline")
       local CurrentTime = self.BodyDissolveTimeline:GetPlaybackPosition()
       -- 2. 手动从曲线资源里，根据时间取值
       local val = self.DissolveCurve:GetFloatValue(CurrentTime)
-      print("DissolveValue", val)
+      --print("DissolveValue", val)
       if self.DMI then
          self.DMI:SetScalarParameterValue("Dissolve", val)
       end

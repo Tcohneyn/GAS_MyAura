@@ -50,7 +50,11 @@ float UMMC_MaxHealth::CalculateBaseMagnitude_Implementation(const FGameplayEffec
     ICombatInterface* CombatInterface = Cast<ICombatInterface>(Spec.GetContext().GetSourceObject());
 
     // 通过接口获取玩家等级，用于计算最大生命值。
-    const int32 PlayerLevel = CombatInterface->GetPlayerLevel();
+    int32 PlayerLevel = 1;
+    if (Spec.GetContext().GetSourceObject()->Implements<UCombatInterface>())
+    {
+        PlayerLevel = ICombatInterface::Execute_GetPlayerLevel(Spec.GetContext().GetSourceObject());
+    }
 
     // 最终返回计算后的最大生命值：
     // 基础值 80 + (2.5 * Vigor) + (10 * 玩家等级)。

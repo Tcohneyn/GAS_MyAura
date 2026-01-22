@@ -41,12 +41,12 @@ function M:ListenCooldownChange()
 end
 
 function M:OnCooldownStart(TimeRemaining)
-    UE.UKismetSystemLibrary.PrintString(self, "Cooldown Started:" .. TimeRemaining)
+    --UE.UKismetSystemLibrary.PrintString(self, "Cooldown Started:" .. TimeRemaining)
     self:HandleCooldownTimer(TimeRemaining)
 end
 
 function M:OnCooldownEnd(TimeRemaining)
-    UE.UKismetSystemLibrary.PrintString(self, "Cooldown Ended:" .. TimeRemaining)
+    --UE.UKismetSystemLibrary.PrintString(self, "Cooldown Ended:" .. TimeRemaining)
     self:HandleCooldownTimer(TimeRemaining)
 end
 
