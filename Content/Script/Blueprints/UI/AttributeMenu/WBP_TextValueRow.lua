@@ -18,8 +18,8 @@ function M:SetNumericalValueInt(NewValue)
 end
 
 function M:Construct()
-   local AMController = UE.UAuraAbilitySystemLibrary.GetAttributeMenuWidgetController(self)
-   AMController.AttributeInfoDelegate:Add(self, M.OnAttributeInfoReceived)
+   self.AMController = UE.UAuraAbilitySystemLibrary.GetAttributeMenuWidgetController(self)
+   self.AMController.AttributeInfoDelegate:Add(self, M.OnAttributeInfoReceived)
 end
 
 function M:OnAttributeInfoReceived(Info)
@@ -29,4 +29,5 @@ function M:OnAttributeInfoReceived(Info)
    self:SetNumericalValueInt(UE.UKismetMathLibrary.FTrunc(Info.AttributeValue))
   end
 end 
+
 return M

@@ -43,11 +43,11 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
     AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
     AuraPlayerState->OnXPChangedDelegate.AddUObject(this, &UOverlayWidgetController::OnXPChanged);
     AuraPlayerState->OnLevelChangedDelegate.AddLambda(
-    [this](int32 NewLevel)
-    {
-        OnPlayerLevelChangedDelegate.Broadcast(NewLevel);
-    }
-);
+        [this](int32 NewLevel)
+        {
+            OnPlayerLevelChangedDelegate.Broadcast(NewLevel);
+        }
+        );
     const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
 
     // 绑定生命值变化回调：
@@ -128,7 +128,7 @@ void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemCo
 }
 
 
-void UOverlayWidgetController::OnXPChanged(int32 NewXP) const 
+void UOverlayWidgetController::OnXPChanged(int32 NewXP) const
 {
     const AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
     const ULevelUpInfo* LevelUpInfo = AuraPlayerState->LevelUpInfo;

@@ -2,8 +2,11 @@
 
 
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
+
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
+#include "Player/AuraPlayerState.h"
 //------------------------------------------------------------
 // 将回调函数绑定到依赖对象
 //------------------------------------------------------------
@@ -26,6 +29,14 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies()
         }
     );
     }
+    AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+    AuraPlayerState->OnAttributePointsChangedDelegate.AddLambda(
+        [this](int32 Points)
+        {
+            AttributePointsChangedDelegate.Broadcast(Points);
+        }
+    );
+
 }
 
 //------------------------------------------------------------
@@ -44,6 +55,8 @@ void UAttributeMenuWidgetController::BroadcastInitialValues()
     {
         BroadcastAttributeInfo(Pair.Key, Pair.Value());
     }
+    AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+    AttributePointsChangedDelegate.Broadcast(AuraPlayerState->GetAttributePoints());
     // // 从 Data Asset 中查找与“力量（Strength）”标签对应的属性信息结构体。
     // // 这里使用 AuraGameplayTags 获取统一的标签定义。
     // FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(
@@ -58,6 +71,11 @@ void UAttributeMenuWidgetController::BroadcastInitialValues()
     // AttributeInfoDelegate.Broadcast(Info);
 }
 
+void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+    UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+    AuraASC->UpgradeAttribute(AttributeTag);
+}
 void UAttributeMenuWidgetController::BroadcastAttributeInfo(const FGameplayTag& AttributeTag, const FGameplayAttribute& Attribute) const
 {
     FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(AttributeTag);

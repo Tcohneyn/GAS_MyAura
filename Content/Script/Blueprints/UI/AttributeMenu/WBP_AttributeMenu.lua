@@ -26,6 +26,8 @@ end
 function M:Task2()
    local AMController = UE.UAuraAbilitySystemLibrary.GetAttributeMenuWidgetController(self)
    self:SetWidgetController(AMController)
+   self.SetWidgetController(self.AttributePointsRow, AMController)
+   AMController.AttributePointsChangedDelegate:Add(self, M.SetButtonsEnabled)
    AMController:BroadcastInitialValues()
 end
 
@@ -39,8 +41,8 @@ function M:Destruct()
 end
 
 function M:SetAttributeTags()
-    -- 获取 GameplayTagsManager 单例
-    local GameplayTagsManager = UE.UAuraAbilitySystemLibrary.GetTag
+   -- 获取 GameplayTagsManager 单例
+   local GameplayTagsManager = UE.UAuraAbilitySystemLibrary.GetTag
    self.Row_Strength.AttributeTag = GameplayTagsManager("Attributes.Primary.Strength")
    self.Row_Intelligence.AttributeTag = GameplayTagsManager("Attributes.Primary.Intelligence")
    self.Row_Resilience.AttributeTag = GameplayTagsManager("Attributes.Primary.Resilience")
@@ -63,9 +65,18 @@ function M:SetAttributeTags()
    self.Row_PhysicalResistance.AttributeTag = GameplayTagsManager("Attributes.Resistance.Physical")
 end
 
--- function M:WidgetControllerSet()
---    local objectname = UE.UKismetSystemLibrary.GetObjectName( self.WidgetController)
---    UE.UKismetSystemLibrary.PrintString(self, "AttributeMenuWidgetControllerSet:" .. objectname)
+function M:SetButtonsEnabled(AttributePoints)
+if AttributePoints > 0 then
+   self.Row_Strength:SetButtonEnabled(true)
+   self.Row_Intelligence:SetButtonEnabled(true)
+   self.Row_Resilience:SetButtonEnabled(true)
+   self.Row_Vigor:SetButtonEnabled(true)
+else
+   self.Row_Strength:SetButtonEnabled(false)
+   self.Row_Intelligence:SetButtonEnabled(false)
+   self.Row_Resilience:SetButtonEnabled(false)
+   self.Row_Vigor:SetButtonEnabled(false)
+end
+end
 
--- end
 return M
