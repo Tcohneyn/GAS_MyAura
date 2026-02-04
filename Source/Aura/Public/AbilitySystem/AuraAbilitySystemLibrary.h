@@ -9,8 +9,11 @@
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
 #include "AuraAbilitySystemLibrary.generated.h"
 
-//class UOverlayWidgetController;
+class UAbilityInfo;
+class USpellMenuWidgetController;
+class UOverlayWidgetController;
 class UAbilitySystemComponent;
+struct FWidgetControllerParams;
 /**
  * 
  */
@@ -20,12 +23,18 @@ class AURA_API UAuraAbilitySystemLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 public:
 
+    UFUNCTION(BlueprintPure, Category="AuraAbilitySystemLibrary|WidgetController", meta = (DefaultToSelf = "WorldContextObject"))
+    static bool MakeWidgetControllerParams(const UObject* WorldContextObject, FWidgetControllerParams& OutWCParams, AAuraHUD*& OutAuraHUD);
+    
     UFUNCTION(BlueprintPure, Category="AuraAbilitySystemLibrary|WidgetController",meta=(WorldContext="WorldContextObject"))
     static UOverlayWidgetController* GetOverlayWidgetController(const UObject* WorldContextObject);
 
     UFUNCTION(BlueprintPure, Category="AuraAbilitySystemLibrary|WidgetController",meta=(WorldContext="WorldContextObject"))
     static UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const UObject* WorldContextObject);
 
+    UFUNCTION(BlueprintPure, Category="AuraAbilitySystemLibrary|WidgetController", meta = (DefaultToSelf = "WorldContextObject"))
+    static USpellMenuWidgetController* GetSpellMenuWidgetController(const UObject* WorldContextObject);
+    
     UFUNCTION(BlueprintCallable, Category="GameplayTags")
     static FGameplayTag GetTag(FName TagName){return FGameplayTag::RequestGameplayTag(TagName);}
 
@@ -38,6 +47,9 @@ public:
     UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
     static UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObject);
 
+    UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
+    static UAbilityInfo* GetAbilityInfo(const UObject* WorldContextObject);
+    
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystemLibrary|GameplayEffects")
     static bool IsBlockedHit(const FGameplayEffectContextHandle& EffectContextHandle);
 

@@ -24,11 +24,11 @@ function M:Task1()
 end
 
 function M:Task2()
-   local AMController = UE.UAuraAbilitySystemLibrary.GetAttributeMenuWidgetController(self)
-   self:SetWidgetController(AMController)
-   self.SetWidgetController(self.AttributePointsRow, AMController)
-   AMController.AttributePointsChangedDelegate:Add(self, M.SetButtonsEnabled)
-   AMController:BroadcastInitialValues()
+   self.AMController = UE.UAuraAbilitySystemLibrary.GetAttributeMenuWidgetController(self)
+   self:SetWidgetController(self.AMController)
+   self.SetWidgetController(self.AttributePointsRow, self.AMController)
+   self.AMController.AttributePointsChangedDelegate:Add(self, M.SetButtonsEnabled)
+   self.AMController:BroadcastInitialValues()
 end
 
 function M:OnClosedButtonClicked()
@@ -38,6 +38,8 @@ end
 
 function M:Destruct()
    self.AttributeMenuClosed:Broadcast()
+   self.AMController.AttributePointsChangedDelegate:Remove(self, M.SetButtonsEnabled)
+
 end
 
 function M:SetAttributeTags()

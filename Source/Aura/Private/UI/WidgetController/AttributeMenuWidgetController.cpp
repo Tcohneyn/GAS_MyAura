@@ -12,11 +12,10 @@
 //------------------------------------------------------------
 void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 {
-    UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
     check(AttributeInfo);
     // 遍历 UAuraAttributeSet 中定义的 TagsToAttributes 映射。
     // 这个映射存储了 Gameplay Tag (Key) 到 Gameplay Attribute (Value) 的关联
-    for (auto& Pair : AS->TagsToAttributes)
+    for (auto& Pair : GetAuraAS()->TagsToAttributes)
     {
         // 核心步骤：获取特定属性的值变化委托（Delegate）。
         // Pair.Value() 返回的是一个 FGameplayAttribute 实例（属性的 Getter 函数）。
@@ -29,8 +28,7 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies()
         }
     );
     }
-    AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
-    AuraPlayerState->OnAttributePointsChangedDelegate.AddLambda(
+    GetAuraPS()->OnAttributePointsChangedDelegate.AddLambda(
         [this](int32 Points)
         {
             AttributePointsChangedDelegate.Broadcast(Points);
@@ -55,8 +53,7 @@ void UAttributeMenuWidgetController::BroadcastInitialValues()
     {
         BroadcastAttributeInfo(Pair.Key, Pair.Value());
     }
-    AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
-    AttributePointsChangedDelegate.Broadcast(AuraPlayerState->GetAttributePoints());
+    AttributePointsChangedDelegate.Broadcast(GetAuraPS()->GetAttributePoints());
     // // 从 Data Asset 中查找与“力量（Strength）”标签对应的属性信息结构体。
     // // 这里使用 AuraGameplayTags 获取统一的标签定义。
     // FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(

@@ -9,6 +9,7 @@
 ---@type GA_FireBolt_C
 local M = UnLua.Class()
 function M:K2_ActivateAbility()
+    --UE.UKismetSystemLibrary.PrintString(self, self:GetAbilityLevel())
     local value = self:K2_CommitAbility()
     --print("Commit Ability:", value)
     local Task = UE.UTargetDataUnderMouse.CreateTargetDataUnderMouse(self)

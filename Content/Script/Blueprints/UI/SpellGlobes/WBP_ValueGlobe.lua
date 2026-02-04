@@ -19,4 +19,8 @@ end
 function M:OnPlayerLevelChangedDelegate_Event(NewValue)
     self.Text_Value:SetText(UE.UKismetTextLibrary.Conv_IntToText(NewValue))
 end
+
+function M:Destruct()
+    self.BPOverlayWidgetController.OnPlayerLevelChangedDelegate:Remove(self, M.OnPlayerLevelChangedDelegate_Event)
+end
 return M

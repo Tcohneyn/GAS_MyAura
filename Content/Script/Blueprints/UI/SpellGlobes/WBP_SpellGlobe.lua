@@ -22,9 +22,14 @@ function M:ReceiveAbilityInfo(AbilityInfo)
         return
     end
     if UE.UBlueprintGameplayTagLibrary.MatchesTag(self.InputTag, AbilityInfo.InputTag, true) then
-        self.CooldownTag = AbilityInfo.CooldownTag
-        self:SetSlateBrush(AbilityInfo.Icon, AbilityInfo.BackgroundMaterial)
-        self:ListenCooldownChange()
+        if not UE.UBlueprintGameplayTagLibrary.MatchesTag(AbilityInfo.AbilityTag, self.NoneTag, true) then
+            self.CooldownTag = AbilityInfo.CooldownTag
+            self:SetSlateBrush(AbilityInfo.Icon, AbilityInfo.BackgroundMaterial)
+            self:ListenCooldownChange()
+        else
+            self:ClearGlobe()
+            self.CooldownTag = nil
+        end
     end
 end
 
@@ -68,6 +73,11 @@ function M:UpdateTimer()
     end
 end
 
+function M:Destruct()
+    if self.BPOverlayWidgetController then
+        self.BPOverlayWidgetController.AbilityInfoDelegate:Remove(self, M.ReceiveAbilityInfo)
+    end
+end
 -- function M:SetIconandBackground(IconBrush, BackgroundBrush)
 --     self.Image_SpellIcon:SetBrush(IconBrush)
 --     self.Image_Background:SetBrush(BackgroundBrush)

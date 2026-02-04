@@ -42,19 +42,50 @@ end
 
 function M:Construct()
    self.AttributeMenuButton.Button.OnClicked:Add(self, M.OnAttributeMenuButtonClicked)
+   self.SpellMenuButton.Button.OnClicked:Add(self, M.OnSpellMenuButtonClicked)
 end
 
 function M:OnAttributeMenuButtonClicked()
+   self.AttributeMenuOpen = true
    self.AttributeMenuButton.Button:SetIsEnabled(false)
    local PlayerController = UE.UGameplayStatics.GetPlayerController(self, 0)
    local AttributeMenu = UE.UWidgetBlueprintLibrary.Create(self, self.AttributeMenu, PlayerController)
    AttributeMenu:AddToViewport()
-   AttributeMenu:SetPositionInViewport(UE.FVector2D(25.0, 25.0), true)
+   AttributeMenu:SetPositionInViewport(UE.FVector2D(self.MenuPadding, self.MenuPadding), true)
    AttributeMenu.AttributeMenuClosed:Add(self, M.OnAttributeMenuClosed) --蓝图中的委托本质是动态多播委托
+   UE.UWidgetBlueprintLibrary.SetInputMode_UIOnlyEx(UE.UGameplayStatics.GetPlayerController(self, 0))
+end
+
+function M:OnSpellMenuButtonClicked()
+   self.SpellMenuOpen = true
+   self.SpellMenuButton.Button:SetIsEnabled(false)
+   local PlayerController = UE.UGameplayStatics.GetPlayerController(self, 0)
+   local SpellMenu = UE.UWidgetBlueprintLibrary.Create(self, self.SpellMenu, PlayerController)
+   SpellMenu:AddToViewport()
+   local ViewportSize = UE.UWidgetLayoutLibrary.GetViewportSize(self)
+   local MenuSize = UE.FVector2D(ViewportSize.x - SpellMenu.SizeBox_Root.WidthOverride - self.MenuPadding,
+      self.MenuPadding)
+   SpellMenu:SetPositionInViewport(MenuSize, true)
+   SpellMenu.SpellMenuClosed:Add(self, M.OnSpellMenuClosed) --蓝图中的委托本质是动态多播委托
+   --UE.UWidgetBlueprintLibrary.SetInputMode_UIOnlyEx(UE.UGameplayStatics.GetPlayerController(self, 0))
 end
 
 function M:OnAttributeMenuClosed()
    self.AttributeMenuButton.Button:SetIsEnabled(true)
+   self.AttributeMenuOpen = false
+   if not self.AttributeMenuOpen then
+      UE.UWidgetBlueprintLibrary.SetInputMode_GameAndUIEx(UE.UGameplayStatics.GetPlayerController(self, 0), nil,
+         UE.EMouseLockMode.DoNotLock, false)
+   end
+end
+
+function M:OnSpellMenuClosed()
+   self.SpellMenuButton.Button:SetIsEnabled(true)
+   -- self.SpellMenuOpen = false
+   -- if not self.SpellMenuOpen then
+   --    UE.UWidgetBlueprintLibrary.SetInputMode_GameAndUIEx(UE.UGameplayStatics.GetPlayerController(self, 0), nil,
+   --             UE.EMouseLockMode.DoNotLock, false)
+   -- end
 end
 
 return M
