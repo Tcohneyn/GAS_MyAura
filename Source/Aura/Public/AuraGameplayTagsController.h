@@ -33,13 +33,9 @@ public:
     FGameplayTag Attributes_Secondary_MaxHealth;
     FGameplayTag Attributes_Secondary_MaxMana;	
 
-    FGameplayTag Attributes_Resistance_Fire;
-    FGameplayTag Attributes_Resistance_Lightning;
-    FGameplayTag Attributes_Resistance_Arcane;
-    FGameplayTag Attributes_Resistance_Physical;
 
     FGameplayTag Attributes_Meta_IncomingXP;
-    
+    //输入标签
     FGameplayTag InputTag_LMB;
     FGameplayTag InputTag_RMB;
     FGameplayTag InputTag_1;
@@ -48,25 +44,39 @@ public:
     FGameplayTag InputTag_4;
     FGameplayTag InputTag_Passive_1;
     FGameplayTag InputTag_Passive_2;
-    
+    //伤害类型标签
     FGameplayTag Damage;
     FGameplayTag Damage_Fire;
     FGameplayTag Damage_Lightning;
     FGameplayTag Damage_Arcane;
     FGameplayTag Damage_Physical;
+    //属性抗性标签
+    FGameplayTag Attributes_Resistance_Fire;
+    FGameplayTag Attributes_Resistance_Lightning;
+    FGameplayTag Attributes_Resistance_Arcane;
+    FGameplayTag Attributes_Resistance_Physical;
     
+    //DeBuff标签
+    FGameplayTag Debuff_Burn;
+    FGameplayTag Debuff_Stun;
+    FGameplayTag Debuff_Arcane;
+    FGameplayTag Debuff_Physical;
+
+    FGameplayTag Debuff_Chance;
+    FGameplayTag Debuff_Damage;
+    FGameplayTag Debuff_Duration;
+    FGameplayTag Debuff_Frequency;
+    //能力标签
     FGameplayTag Abilities_None;
-    
     FGameplayTag Abilities_Attack;
     FGameplayTag Abilities_Summon;
-
     FGameplayTag Abilities_HitReact;
-
+    //状态能力标签
     FGameplayTag Abilities_Status_Locked;
     FGameplayTag Abilities_Status_Eligible;
     FGameplayTag Abilities_Status_Unlocked;
     FGameplayTag Abilities_Status_Equipped;
-
+    //能力类型标签
     FGameplayTag Abilities_Type_Offensive;
     FGameplayTag Abilities_Type_Passive;
     FGameplayTag Abilities_Type_None;
@@ -87,6 +97,7 @@ public:
     FGameplayTag Montage_Attack_4;
     
     TMap<FGameplayTag, FGameplayTag> DamageTypesToResistances;
+    TMap<FGameplayTag, FGameplayTag> DamageTypesToDebuffs;
     FGameplayTag Effects_HitReact;
 private:
     static FAuraGameplayTags GameplayTags;

@@ -42,20 +42,22 @@ void AAuraProjectile::BeginPlay()
     LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound, GetRootComponent());
 }
 
+void AAuraProjectile::OnHit()
+{
+    UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
+    if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+    bHit = true;
+}
+
 void AAuraProjectile::Destroyed()
 {
-    if (LoopingSoundComponent)
-    {
-        LoopingSoundComponent->Stop();
-        LoopingSoundComponent->DestroyComponent();
-    }
-    if (!bHit && !HasAuthority())
-    {
-        UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-        //if (LoopingSoundComponent) LoopingSoundComponent->Stop();
-        bHit = true;
-    }
+    // if (LoopingSoundComponent)
+    // {
+    //     LoopingSoundComponent->Stop();
+    //     LoopingSoundComponent->DestroyComponent();
+    // }
+    if (!bHit && !HasAuthority()) OnHit();
     Super::Destroyed();
 }
 
@@ -69,44 +71,29 @@ void AAuraProjectile::OnSphereOverlap(
     bool bFromSweep, // 是否来自扫描检测（true）或简单重叠检测（false）
     const FHitResult& SweepResult) // 扫描检测的详细命中结果（包含位置、法线等信息）
 {
-    if (!DamageEffectSpecHandle.Data.IsValid() || DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
-    {
-        return;
-    }
-    if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(), OtherActor))
-    {
-        return;
-    }
-    if (!bHit)
-    {
-        // 1. 在碰撞位置播放冲击音效
-        // 使用UGameplayStatics工具类在世界的碰撞点播放一个一次性的声音
-        UGameplayStatics::PlaySoundAtLocation(
-            this, // 世界上下文对象（通常传this）
-            ImpactSound, // 要播放的音效资源
-            GetActorLocation(), // 音效播放的世界坐标（投射物当前位置）
-            FRotator::ZeroRotator // 音效的旋转（通常为零旋转）
-            );
-
-        // 2. 在碰撞位置生成视觉冲击特效（如火花、烟雾粒子效果）
-        // 使用Niagara系统（UE4/UE5的下一代特效系统）在碰撞点生成一个特效
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-            this, // 世界上下文对象
-            ImpactEffect, // 要生成的Niagara粒子系统资源
-            GetActorLocation() // 特效生成的世界坐标
-            );
-
-        // 3. 停止投射物自身的循环音效（如飞行呼啸声）
-        // 假设LoopingSoundComponent是一个指向UAudioComponent的指针，用于播放循环飞行音效
-        if (LoopingSoundComponent) LoopingSoundComponent->Stop();
-        bHit = true;
-    }
+    AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
+    if (SourceAvatarActor == OtherActor) return;
+    if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) return;
+    if (!bHit) OnHit();
     // 4. 网络游戏中的权威判断：检查当前实例是否在服务器上运行
     if (HasAuthority()) // 仅在服务器端执行销毁逻辑
     {
         if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
         {
-            TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+            const FVector DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
+            DamageEffectParams.DeathImpulse = DeathImpulse;
+            const bool bKnockback = FMath::RandRange(1, 100) < DamageEffectParams.KnockbackChance;
+            if (bKnockback)
+            {
+                FRotator Rotation = GetActorRotation();
+                Rotation.Pitch = 45.f;
+				
+                const FVector KnockbackDirection = Rotation.Vector();
+                const FVector KnockbackForce = KnockbackDirection * DamageEffectParams.KnockbackForceMagnitude;
+                DamageEffectParams.KnockbackForce = KnockbackForce;
+            }
+            DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
+            UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
         }
         // 服务器端：直接销毁投射物Actor，销毁操作会通过网络同步到所有客户端
         Destroy();

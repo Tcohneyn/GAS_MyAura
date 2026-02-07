@@ -46,7 +46,9 @@ function M:OnEventReceived(Payload)
         if Actor then
             -- 这里相当于蓝图循环中的 Loop Body
             if UE.UAuraAbilitySystemLibrary.IsNotFriend(AvatarActor, Actor) then
-                print("检测到目标: " .. Actor:GetName())
+                --print("检测到目标: " .. Actor:GetName())
+                local DamageEffectParams = self:MakeDamageEffectParamsFromClassDefaults(Actor)
+                UE.UAuraAbilitySystemLibrary.ApplyDamageEffect(DamageEffectParams)
                 self:CauseDamage(Actor)
                 --UE.UKismetSystemLibrary.DrawDebugSphere(self, Actor:K2_GetActorLocation(), 15, 12, self.LineColor, 3.0,
                 --1.0)

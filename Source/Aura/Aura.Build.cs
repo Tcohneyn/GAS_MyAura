@@ -15,16 +15,16 @@ public class Aura : ModuleRules
 			"EnhancedInput",
 			"GameplayAbilities",
 			"UMG",
-			"MotionWarping"
+			"MotionWarping",
+			"Niagara",
+			"AIModule"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"GameplayTasks",
 			"GameplayTags",
-			"NavigationSystem",
-			"Niagara",
-			"AIModule", 
+			"NavigationSystem"
 		});
 
 		// Uncomment if you are using Slate UI

@@ -184,6 +184,7 @@ void AAuraCharacter::InitAbilityActorInfo()
     Cast<UAuraAbilitySystemComponent>(AuraPlayerState->GetAbilitySystemComponent())->AbilityActorInfoSet();
     AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();
     AttributeSet = AuraPlayerState->GetAttributeSet();
+    OnAscRegistered.Broadcast(AbilitySystemComponent);
     //多人游戏下客户端PlayerController可能为空所以不用check。本地角色不为空，其它角色为空。只需不为空时继续就行。
     if (AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController()))
     {

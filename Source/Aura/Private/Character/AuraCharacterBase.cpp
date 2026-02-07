@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "AuraGameplayTagsController.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/ContentEncryptionConfig.h"
@@ -13,7 +14,11 @@
 AAuraCharacterBase::AAuraCharacterBase()
 {
     PrimaryActorTick.bCanEverTick = false;
-    
+    const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	
+    BurnDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
+    BurnDebuffComponent->SetupAttachment(GetRootComponent());
+    BurnDebuffComponent->DebuffTag = GameplayTags.Debuff_Burn;
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
     GetCapsuleComponent()->SetGenerateOverlapEvents(false);
     GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
@@ -44,32 +49,35 @@ UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
     return HitReactMontage;
 }
 
-void AAuraCharacterBase::Die()
+void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 {
     Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
-    MulticastHandleDeath();
+    MulticastHandleDeath(DeathImpulse);
 }
 
 // 这是一个在服务器端调用，但在所有客户端上执行的远程过程调用(RPC)函数
 // 用于处理角色死亡时的物理效果和碰撞设置
-void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+void AAuraCharacterBase::MulticastHandleDeath_Implementation(const FVector& DeathImpulse)
 {
     UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), GetActorRotation());
     // 设置武器的物理模拟
     Weapon->SetSimulatePhysics(true);        // 启用武器的物理模拟，使其受重力影响
     Weapon->SetEnableGravity(true);          // 启用武器的重力效果
     Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly); // 只启用物理碰撞
-
+    Weapon->AddImpulse(DeathImpulse * 0.1f, NAME_None, true);
+    
     // 设置角色网格体的物理模拟
     GetMesh()->SetSimulatePhysics(true);     // 启用角色网格体的物理模拟
     GetMesh()->SetEnableGravity(true);       // 启用角色网格体的重力效果
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly); // 只启用物理碰撞
     GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block); // 设置对静态物体的碰撞响应为阻挡
-
+    GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
+    
     // 禁用胶囊体组件的碰撞
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 完全禁用胶囊体碰撞
     Dissolve();
     bDead = true;
+    BurnDebuffComponent->Deactivate();
 }
 
 void AAuraCharacterBase::BeginPlay()
@@ -138,6 +146,11 @@ void AAuraCharacterBase::IncremenetMinionCount_Implementation(int32 Amount)
 ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation()
 {
     return CharacterClass;
+}
+
+FOnASCRegistered AAuraCharacterBase::GetOnASCRegisteredDelegate()
+{
+    return OnAscRegistered;
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()
